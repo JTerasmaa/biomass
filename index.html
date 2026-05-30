@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eesti loomade biomass</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --card2: #1a1a28;
+    --border: #2a2a40;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --accent4: #f9ca24;
+    --text: #e8e8f0;
+    --muted: #888;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header { text-align: center; padding: 3rem 2rem 1.5rem; background: linear-gradient(180deg, #0d0d1f 0%, transparent 100%); }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: .5rem; }
+  header h1 span { background: linear-gradient(135deg, #6c63ff, #43e97b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  header p { color: var(--muted); font-size: .9rem; max-width: 700px; margin: .5rem auto 0; }
+
+  nav { display: flex; gap: .5rem; justify-content: center; padding: 1rem 2rem; flex-wrap: wrap; }
+  nav button { background: var(--card2); border: 1px solid var(--border); color: var(--muted); padding: .5rem 1.2rem; border-radius: 999px; cursor: pointer; font-size: .85rem; transition: all .2s; }
+  nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  nav button:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+
+  /* SECTION TABS */
+  .section-tabs { display: flex; gap: .4rem; margin: 1.5rem 0 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .section-tabs button { background: none; border: none; color: var(--muted); font-size: 1rem; font-weight: 600; padding: .6rem 1.4rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+  .section-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  @media(max-width:900px) { .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
+  .card h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+  .card-full { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .card-full h3 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+
+  /* METRIC TYPE TOGGLE */
+  .metric-toggle { display: flex; gap: .3rem; margin-bottom: 1.2rem; }
+  .metric-toggle button { background: var(--card2); border: 1px solid var(--border); color: var(--muted); padding: .35rem .9rem; border-radius: 6px; cursor: pointer; font-size: .8rem; transition: all .15s; }
+  .metric-toggle button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* SPECIES TOGGLE */
+  .species-grid { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+  .sp-btn { display: flex; align-items: center; gap: .4rem; background: var(--card2); border: 1px solid var(--border); color: var(--muted); padding: .3rem .8rem .3rem .5rem; border-radius: 8px; cursor: pointer; font-size: .78rem; transition: all .15s; user-select: none; }
+  .sp-btn .ico { font-size: 1.1rem; line-height: 1; }
+  .sp-btn.on { color: var(--text); border-color: transparent; }
+  .sp-btn.off { opacity: .4; }
+
+  /* YEAR RANGE */
+  .year-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: .82rem; color: var(--muted); }
+  .year-row input[type=range] { flex: 1; accent-color: var(--accent); }
+  .year-row span { min-width: 3ch; font-weight: 700; color: var(--text); }
+
+  /* BIG NUMBERS */
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .stat-box { background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
+  .stat-box .val { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: .2rem; }
+  .stat-box .lbl { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* PICTOGRAM STRIP */
+  .pict-strip { display: flex; flex-wrap: wrap; gap: .6rem; align-items: flex-end; padding: 1rem 0; }
+  .pict-unit { display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+  .pict-unit .ico-big { font-size: 2rem; line-height: 1; }
+  .pict-unit .lbl2 { font-size: .65rem; color: var(--muted); text-align: center; max-width: 5rem; line-height: 1.2; }
+  .pict-unit .bar { width: 100%; min-width: 2.5rem; border-radius: 4px 4px 0 0; transition: height .4s; }
+
+  /* DONUT LEGEND */
+  .donut-legend { display: flex; flex-direction: column; gap: .5rem; margin-top: .8rem; }
+  .legend-row { display: flex; align-items: center; gap: .6rem; font-size: .8rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* HIGHLIGHT BOX */
+  .highlight { background: linear-gradient(135deg, rgba(108,99,255,.15), rgba(67,233,123,.08)); border: 1px solid rgba(108,99,255,.3); border-radius: 12px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; }
+  .highlight p { font-size: .92rem; line-height: 1.6; }
+  .highlight strong { color: var(--accent3); }
+
+  canvas { max-width: 100%; }
+  .chart-wrap { position: relative; height: 300px; }
+  .chart-wrap-tall { position: relative; height: 380px; }
+
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: .75rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Eesti loomade<br><span>biomass ja arvukus</span></h1>
+  <p>Imetajad, linnud, kariloomad ja inimesed 1990–2024. Kehakaalud × isendite arv = biomass tonnides.</p>
+</header>
+
+<div class="container">
+
+  <!-- SECTION TABS -->
+  <div class="section-tabs">
+    <button class="active" onclick="showSection('mammals')">🦌 Imetajad</button>
+    <button onclick="showSection('birds')">🐦 Linnud</button>
+    <button onclick="showSection('compare24')">📊 2024 võrdlus</button>
+  </div>
+
+  <!-- ============================================================ MAMMALS ============================================================ -->
+  <div class="section active" id="sec-mammals">
+
+    <div class="highlight">
+      <p>Eesti <strong>kariloomade ja inimeste biomass</strong> on metsloomade omast <strong>kümned korrad suurem</strong>. 2024. aastal oli kogu ulukite imetajate biomass ~10 400 t — kariloomadel aga ~145 000 t ja inimestel ~97 000 t.</p>
+    </div>
+
+    <div class="stat-row" id="mammal-stats"></div>
+
+    <!-- metric & species toggle -->
+    <div class="card-full">
+      <h3>Aegrida 1990–2024 — vali mõõdik ja liigid</h3>
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;">
+        <div>
+          <div class="metric-toggle" style="margin-bottom:.8rem;">
+            <button class="active" id="mam-metric-bio" onclick="setMamMetric('bio')">Biomass (t)</button>
+            <button id="mam-metric-cnt" onclick="setMamMetric('cnt')">Arvukus (isendit)</button>
+          </div>
+          <div class="metric-toggle">
+            <button class="active" id="mam-scale-abs" onclick="setMamScale('abs')">Absoluut</button>
+            <button id="mam-scale-pct" onclick="setMamScale('pct')">Protsent</button>
+          </div>
+        </div>
+        <div id="mammal-species-btns" class="species-grid" style="flex:1;"></div>
+      </div>
+      <div class="chart-wrap-tall" style="margin-top:1rem;">
+        <canvas id="mamLineChart"></canvas>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Biomass rühmade kaupa</h3>
+        <div class="metric-toggle" style="margin-bottom:.8rem;">
+          <button class="active" id="mam-donut-bio" onclick="setMamDonutMetric('bio')">Biomass</button>
+          <button id="mam-donut-cnt" onclick="setMamDonutMetric('cnt')">Arvukus</button>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+          <div style="position:relative;width:180px;height:180px;flex-shrink:0;"><canvas id="mamDonut"></canvas></div>
+          <div class="donut-legend" id="mamDonutLegend"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Suurimetajate dünaamika</h3>
+        <div class="chart-wrap"><canvas id="bigMamChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card-full">
+      <h3>Kariloomade biomass ajas</h3>
+      <div class="chart-wrap"><canvas id="livestockChart"></canvas></div>
+    </div>
+
+  </div><!-- /mammals -->
+
+  <!-- ============================================================ BIRDS ============================================================ -->
+  <div class="section" id="sec-birds">
+
+    <div class="highlight">
+      <p>Eesti haudelinnude koguarvukus on vähenenud ~<strong>38%</strong> alates 1990. aastast. Kodulindude biomass ületas 2010. aastal haudelindude oma ja kasvab jätkuvalt. 2024. aastal: haudelinnud <strong>~1 695 t</strong>, kodulinnud <strong>~4 800 t</strong>.</p>
+    </div>
+
+    <div class="stat-row" id="bird-stats"></div>
+
+    <div class="card-full">
+      <h3>Haudelinnud ja kodulinnud — aegrida</h3>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem;">
+        <div class="metric-toggle">
+          <button class="active" id="bird-metric-bio" onclick="setBirdMetric('bio')">Biomass (t)</button>
+          <button id="bird-metric-cnt" onclick="setBirdMetric('cnt')">Arvukus (isendit)</button>
+        </div>
+        <div class="metric-toggle">
+          <button class="active" id="bird-scale-abs" onclick="setBirdScale('abs')">Absoluut</button>
+          <button id="bird-scale-pct" onclick="setBirdScale('pct')">Protsent</button>
+        </div>
+      </div>
+      <div id="bird-species-btns" class="species-grid"></div>
+      <div class="chart-wrap-tall" style="margin-top:.8rem;"><canvas id="birdLineChart"></canvas></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>2024 linnustiku jaotus</h3>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+          <div style="position:relative;width:180px;height:180px;flex-shrink:0;"><canvas id="birdDonut"></canvas></div>
+          <div class="donut-legend" id="birdDonutLegend"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Arvukuse muutus 1990→2024 (%)</h3>
+        <div class="chart-wrap"><canvas id="birdChangeChart"></canvas></div>
+      </div>
+    </div>
+  </div><!-- /birds -->
+
+  <!-- ============================================================ COMPARE 2024 ============================================================ -->
+  <div class="section" id="sec-compare24">
+
+    <div class="highlight">
+      <p>2024. aasta hetktõmmis: kõik rühmad koos. Kariloomad moodustavad biomassist <strong>~57%</strong>, inimesed <strong>~39%</strong>, metsloomad vaid <strong>~4%</strong>. Arvukuselt domineerivad linnud ja pisiimetajad.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Biomass 2024 (tonnides)</h3>
+        <div class="metric-toggle" style="margin-bottom:.8rem;">
+          <button class="active" id="cmp-abs" onclick="setCmpMode('abs')">Absoluut</button>
+          <button id="cmp-pct" onclick="setCmpMode('pct')">Protsent</button>
+        </div>
+        <div class="chart-wrap-tall"><canvas id="cmpBarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Piktogramm — biomass proportsioonid</h3>
+        <div id="pictogram" style="margin-top:.5rem;"></div>
+      </div>
+    </div>
+
+    <div class="card-full">
+      <h3>Kõigi rühmade võrdlus — biomass vs arvukus 2024</h3>
+      <div class="chart-wrap-tall"><canvas id="bubbleChart"></canvas></div>
+    </div>
+
+  </div><!-- /compare -->
+
+</div><!-- /container -->
+
+<footer>
+  Allikad: Statistikaamet, Keskkonnaagentuuri ulukiseire, Elts et al. 2019 (EOÜ, Hirundo), PRIA. Kõik arvud hinnangulised.
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const YEARS = [1990,1995,2000,2005,2010,2012,2014,2016,2018,2020,2022,2023,2024];
+
+const MAMMALS = [
+  { id:'põder',    name:'Põder',             ico:'🫎', cat:'wild',      mass:310,
+    cnt:[13000,11000,9000,10000,11500,12000,12500,12000,11500,11000,12000,11000,10500],
+    bio:[4030,3410,2790,3100,3565,3720,3875,3720,3565,3410,3720,3410,3255] },
+  { id:'hirv',     name:'Punahirv',           ico:'🦌', cat:'wild',      mass:140,
+    cnt:[200,400,800,2000,4000,5500,7000,8500,9500,10000,10500,10750,11000],
+    bio:[28,56,112,280,560,770,980,1190,1330,1400,1470,1505,1540] },
+  { id:'kits',     name:'Metskits',           ico:'🐐', cat:'wild',      mass:24,
+    cnt:[50000,55000,70000,110000,150000,40000,75000,100000,125000,140000,120000,110000,72500],
+    bio:[1200,1320,1680,2640,3600,960,1800,2400,3000,3360,2880,2640,1740] },
+  { id:'metssiga', name:'Metssiga',           ico:'🐗', cat:'wild',      mass:85,
+    cnt:[8000,10000,11000,18000,22000,20000,31000,7000,5500,10500,14000,16500,17500],
+    bio:[680,850,935,1530,1870,1700,2635,595,467.5,892.5,1190,1402.5,1487.5] },
+  { id:'kobras',   name:'Kobras',             ico:'🦫', cat:'wild',      mass:20,
+    cnt:[5000,8000,12000,14000,16000,17000,18000,18000,17000,17000,16500,16500,16500],
+    bio:[100,160,240,280,320,340,360,360,340,340,330,330,330] },
+  { id:'hüljes',   name:'Hallhüljes',         ico:'🦭', cat:'wild',      mass:170,
+    cnt:[2000,2500,3000,3500,4500,5000,5500,5500,5800,6000,6200,6300,6500],
+    bio:[340,425,510,595,765,850,935,935,986,1020,1054,1071,1105] },
+  { id:'karu',     name:'Pruunkaru',          ico:'🐻', cat:'wild',      mass:155,
+    cnt:[600,600,650,700,800,850,900,900,950,950,1000,1000,1000],
+    bio:[93,93,100.75,108.5,124,131.75,139.5,139.5,147.25,147.25,155,155,155] },
+  { id:'hunt',     name:'Hunt',               ico:'🐺', cat:'wild',      mass:41,
+    cnt:[200,200,180,180,200,220,180,160,120,200,280,380,350],
+    bio:[8.2,8.2,7.38,7.38,8.2,9.02,7.38,6.56,4.92,8.2,11.48,15.58,14.35] },
+  { id:'ilves',    name:'Ilves',              ico:'🐱', cat:'wild',      mass:22,
+    cnt:[700,900,1000,1100,900,500,600,650,700,700,700,725,725],
+    bio:[15.4,19.8,22,24.2,19.8,11,13.2,14.3,15.4,15.4,15.4,15.95,15.95] },
+  { id:'rebane',   name:'Rebane',             ico:'🦊', cat:'wild',      mass:6.5,
+    cnt:[12000,10000,10000,8000,8000,8000,7500,7500,7000,7500,7000,7000,7000],
+    bio:[78,65,65,52,52,52,48.75,48.75,45.5,48.75,45.5,45.5,45.5] },
+  { id:'kährik',   name:'Kährikkoer',         ico:'🦝', cat:'wild',      mass:7,
+    cnt:[12000,14000,15000,18000,20000,18000,16000,14000,13000,12000,10500,10000,10000],
+    bio:[84,98,105,126,140,126,112,98,91,84,73.5,70,70] },
+  { id:'mäger',    name:'Mäger',              ico:'🦡', cat:'wild',      mass:11,
+    cnt:[8000,9000,10000,11000,13000,14000,14000,14500,15000,15000,15000,15000,15000],
+    bio:[88,99,110,121,143,154,154,159.5,165,165,165,165,165] },
+  { id:'jänes',    name:'Halljänes',          ico:'🐇', cat:'wild',      mass:3.8,
+    cnt:[30000,25000,25000,22000,20000,22000,25000,28000,30000,30000,30000,30000,30000],
+    bio:[114,95,95,83.6,76,83.6,95,106.4,114,114,114,114,114] },
+  { id:'pisiim',   name:'Pisiimetajad (kokku)',ico:'🐭', cat:'wild-small', mass:null,
+    cnt:[15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000,15350000],
+    bio:[349,349,349,349,349,349,349,349,349,349,349,349,349] },
+  { id:'veised',   name:'Veised',             ico:'🐄', cat:'livestock',  mass:480,
+    cnt:[700000,420000,310000,279000,232000,248000,271000,258000,259000,250000,243000,238000,232400],
+    bio:[336000,201600,148800,133920,111360,119040,130080,123840,124320,120000,116640,114240,111552] },
+  { id:'sead',     name:'Sead',               ico:'🐷', cat:'livestock',  mass:80,
+    cnt:[1000000,600000,400000,375000,370000,380000,350000,330000,315000,305000,298000,292000,283600],
+    bio:[80000,48000,32000,30000,29600,30400,28000,26400,25200,24400,23840,23360,22688] },
+  { id:'lambad',   name:'Lambad+kitsed',      ico:'🐑', cat:'livestock',  mass:59,
+    cnt:[100000,50000,28000,35000,82000,88000,88000,80000,72000,62000,55000,52000,49300],
+    bio:[5900,2950,1652,2065,4838,5192,5192,4720,4248,3658,3245,3068,2908.7] },
+  { id:'hobused',  name:'Hobused',            ico:'🐴', cat:'livestock',  mass:500,
+    cnt:[20000,null,6000,null,7000,null,null,null,null,7500,null,null,7000],
+    bio:[10000,6000,3000,3000,3500,3500,3500,3500,3500,3750,3500,3500,3500] },
+  { id:'koer',     name:'Koer',               ico:'🐕', cat:'livestock',  mass:10,
+    cnt:[350000,350000,350000,350000,350000,350000,350000,350000,350000,350000,350000,350000,350000],
+    bio:[3500,3500,3500,3500,3500,3500,3500,3500,3500,3500,3500,3500,3500] },
+  { id:'kass',     name:'Kass',               ico:'🐈', cat:'livestock',  mass:4,
+    cnt:[250000,250000,250000,250000,250000,250000,250000,250000,250000,250000,250000,250000,250000],
+    bio:[1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,1000] },
+  { id:'inimene',  name:'Inimesed',           ico:'🧑', cat:'human',     mass:71,
+    cnt:[1571600,1448000,1370052,1358000,1340127,1325000,1315000,1315000,1319000,1328976,1331800,1365884,1374687],
+    bio:[111583.6,102808,97273.7,96418,95149,94075,93365,93365,93649,94357.3,94557.8,96977.8,97602.8] },
+];
+
+const BIRDS = [
+  { id:'metsal',   name:'Metsalinnud',        ico:'🦉', cat:'wild',
+    cnt:[24000000,22000000,20000000,19000000,18000000,17400000,17000000,16600000,16000000,15800000,15600000,15500000,15400000],
+    bio:[840,770,700,665,630,609,595,581,560,553,546,542.5,539] },
+  { id:'vee',      name:'Vee- ja rannaklinnud',ico:'🦢', cat:'wild',
+    cnt:[6000000,5400000,5000000,4600000,4400000,4200000,4100000,4000000,3900000,3840000,3800000,3780000,3760000],
+    bio:[1560,1404,1300,1196,1144,1092,1066,1040,1014,998.4,988,982.8,977.6] },
+  { id:'niit',     name:'Niidu- ja kultuurmaastik',ico:'🦜', cat:'wild',
+    cnt:[5000000,4400000,4000000,3800000,3600000,3400000,3300000,3200000,3100000,3000000,2960000,2920000,2900000],
+    bio:[275,242,220,209,198,187,181.5,176,170.5,165,162.8,160.6,159.5] },
+  { id:'soo',      name:'Soo- ja rabalinnud',  ico:'🐦', cat:'wild',
+    cnt:[1200000,1100000,1000000,940000,900000,880000,840000,820000,800000,780000,760000,750000,740000],
+    bio:[30,27.5,25,23.5,22.5,22,21,20.5,20,19.5,19,18.75,18.5] },
+  { id:'kodulind', name:'Kodulinnud',          ico:'🐓', cat:'domestic',
+    cnt:[2000000,1800000,1750000,1550000,1800000,2000000,2150000,2250000,2358000,2370000,2400000,2400000,2400000],
+    bio:[4000,3600,3500,3100,3600,4000,4300,4500,4716,4740,4800,4800,4800] },
+];
+
+// ─── COLORS ─────────────────────────────────────────────────────────────────
+const CAT_COLORS = {
+  wild:      ['#6c63ff','#a78bfa','#818cf8','#60a5fa','#34d399','#6ee7b7','#fcd34d','#f9a8d4','#c4b5fd','#5eead4','#93c5fd','#fda4af','#d9f99d'],
+  'wild-small':['#22d3ee'],
+  livestock: ['#f97316','#fb923c','#fdba74','#fde68a','#fef9c3','#d4d4d8'],
+  human:     ['#ec4899'],
+  bird_wild: ['#43e97b','#38f9d7','#4facfe','#f093fb'],
+  bird_dom:  ['#f9ca24'],
+};
+
+function catColor(sp, idx) {
+  if(sp.cat==='wild') return CAT_COLORS.wild[idx % CAT_COLORS.wild.length];
+  if(sp.cat==='wild-small') return CAT_COLORS['wild-small'][0];
+  if(sp.cat==='livestock') return CAT_COLORS.livestock[idx % CAT_COLORS.livestock.length];
+  if(sp.cat==='human') return CAT_COLORS.human[0];
+  return '#888';
+}
+function birdColor(sp, idx) {
+  if(sp.cat==='wild') return CAT_COLORS.bird_wild[idx % 4];
+  return CAT_COLORS.bird_dom[0];
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let mamMetric = 'bio', mamScale = 'abs', mamDonutMetric = 'bio';
+let birdMetric = 'bio', birdScale = 'abs';
+let cmpMode = 'abs';
+
+// Default ON species (exclude pisiim initially visible but togglable)
+const DEFAULT_MAM_ON = new Set(['põder','hirv','kits','metssiga','kobras','hüljes','karu','veised','sead','lambad','hobused','inimene']);
+const DEFAULT_BIRD_ON = new Set(['metsal','vee','niit','soo','kodulind']);
+
+let mamOn = new Set(DEFAULT_MAM_ON);
+let birdOn = new Set(DEFAULT_BIRD_ON);
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────────
+let charts = {};
+
+const CHART_DEFAULTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: {} } },
+  scales: {
+    x: { ticks: { color:'#888', font:{size:11} }, grid: { color:'rgba(255,255,255,.04)' } },
+    y: { ticks: { color:'#888', font:{size:11} }, grid: { color:'rgba(255,255,255,.06)' } }
+  }
+};
+
+function fmtNum(n) {
+  if(n>=1e6) return (n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1).replace(/\.?0+$/,'')+'k';
+  return n.toFixed(1).replace(/\.?0+$/,'');
+}
+
+function makeChart(id, type, data, options={}) {
+  const ctx = document.getElementById(id);
+  if(!ctx) return null;
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, { type, data, options: Object.assign({}, CHART_DEFAULTS, options) });
+  return charts[id];
+}
+
+// ─── SECTION NAV ─────────────────────────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  document.querySelectorAll('.section-tabs button').forEach((b,i) => {
+    const map = ['mammals','birds','compare24'];
+    b.classList.toggle('active', map[i]===name);
+  });
+  if(name==='birds') renderBirds();
+  if(name==='compare24') renderCompare();
+}
+
+// ─── MAMMALS ─────────────────────────────────────────────────────────────────
+function buildMamSpeciesBtns() {
+  const c = document.getElementById('mammal-species-btns');
+  c.innerHTML = '';
+  MAMMALS.forEach((sp,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sp-btn ' + (mamOn.has(sp.id)?'on':'off');
+    btn.style.borderColor = mamOn.has(sp.id) ? catColor(sp,MAMMALS.filter(m=>m.cat===sp.cat).indexOf(sp)) : 'transparent';
+    btn.style.background = mamOn.has(sp.id) ? catColor(sp,MAMMALS.filter(m=>m.cat===sp.cat).indexOf(sp))+'22' : '';
+    btn.innerHTML = `<span class="ico">${sp.ico}</span>${sp.name}`;
+    btn.onclick = () => {
+      mamOn.has(sp.id) ? mamOn.delete(sp.id) : mamOn.add(sp.id);
+      buildMamSpeciesBtns();
+      renderMamLine();
+    };
+    c.appendChild(btn);
+  });
+}
+
+function setMamMetric(m) {
+  mamMetric = m;
+  document.getElementById('mam-metric-bio').classList.toggle('active', m==='bio');
+  document.getElementById('mam-metric-cnt').classList.toggle('active', m==='cnt');
+  renderMamLine();
+}
+function setMamScale(s) {
+  mamScale = s;
+  document.getElementById('mam-scale-abs').classList.toggle('active', s==='abs');
+  document.getElementById('mam-scale-pct').classList.toggle('active', s==='pct');
+  renderMamLine();
+}
+function setMamDonutMetric(m) {
+  mamDonutMetric = m;
+  document.getElementById('mam-donut-bio').classList.toggle('active', m==='bio');
+  document.getElementById('mam-donut-cnt').classList.toggle('active', m==='cnt');
+  renderMamDonut();
+}
+
+function renderMamStats() {
+  const li = YEARS.indexOf(2024);
+  const wildBio  = MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+m.bio[li],0);
+  const liveBio  = MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+m.bio[li],0);
+  const humBio   = MAMMALS.find(m=>m.id==='inimene').bio[li];
+  const ratio    = Math.round((liveBio+humBio)/wildBio);
+  const el = document.getElementById('mammal-stats');
+  el.innerHTML = `
+    <div class="stat-box"><div class="val" style="color:#6c63ff">${Math.round(wildBio/1000)}k t</div><div class="lbl">🦌 Metsloomad (biomass)</div></div>
+    <div class="stat-box"><div class="val" style="color:#f97316">${Math.round(liveBio/1000)}k t</div><div class="lbl">🐄 Kariloomad (biomass)</div></div>
+    <div class="stat-box"><div class="val" style="color:#ec4899">${Math.round(humBio/1000)}k t</div><div class="lbl">🧑 Inimesed (biomass)</div></div>
+    <div class="stat-box"><div class="val" style="color:#43e97b">${ratio}×</div><div class="lbl">Kari+inimene vs metsloomad</div></div>
+  `;
+}
+
+function renderMamLine() {
+  const active = MAMMALS.filter(m => mamOn.has(m.id));
+  const key = mamMetric === 'bio' ? 'bio' : 'cnt';
+
+  let datasets;
+  if(mamScale === 'pct') {
+    const totals = YEARS.map((_,yi) => active.reduce((s,sp) => s + (sp[key][yi]||0), 0));
+    datasets = active.map((sp,i) => {
+      const col = catColor(sp, MAMMALS.filter(m=>m.cat===sp.cat).indexOf(sp));
+      return {
+        label: sp.name,
+        data: sp[key].map((v,yi) => totals[yi]>0 ? (v/totals[yi]*100) : 0),
+        borderColor: col, backgroundColor: col+'44', fill: true, tension: .35, pointRadius: 3,
+      };
+    });
+  } else {
+    datasets = active.map((sp,i) => {
+      const col = catColor(sp, MAMMALS.filter(m=>m.cat===sp.cat).indexOf(sp));
+      return {
+        label: sp.name,
+        data: sp[key].slice(),
+        borderColor: col, backgroundColor: col+'33', fill: false, tension: .35, pointRadius: 3,
+      };
+    });
+  }
+
+  const yLabel = mamScale==='pct' ? '%' : (key==='bio' ? 'Biomass (t)' : 'Isendit');
+  makeChart('mamLineChart','line',{ labels: YEARS.map(String), datasets },{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:true, position:'bottom', labels:{ color:'#aaa', boxWidth:12, font:{size:11} } },
+      tooltip:{ callbacks:{ label: ctx => `${ctx.dataset.label}: ${mamScale==='pct'?ctx.parsed.y.toFixed(1)+'%':fmtNum(ctx.parsed.y)}` } }
+    },
+    scales:{
+      x:{ ticks:{color:'#888',font:{size:10}}, grid:{color:'rgba(255,255,255,.04)'} },
+      y:{ stacked: mamScale==='pct', ticks:{color:'#888',font:{size:10}, callback: v => mamScale==='pct'?v+'%':fmtNum(v)}, grid:{color:'rgba(255,255,255,.06)'}, title:{display:true,text:yLabel,color:'#666',font:{size:11}} }
+    }
+  });
+}
+
+function renderMamDonut() {
+  const li = YEARS.indexOf(2024);
+  const key = mamDonutMetric==='bio'?'bio':'cnt';
+  const groups = [
+    { label:'Metsloomad', val: MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+(m[key][li]||0),0), color:'#6c63ff' },
+    { label:'Kariloomad',  val: MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+(m[key][li]||0),0), color:'#f97316' },
+    { label:'Inimesed',    val: (MAMMALS.find(m=>m.id==='inimene')[key][li]||0), color:'#ec4899' },
+  ];
+  const total = groups.reduce((s,g)=>s+g.val,0);
+  makeChart('mamDonut','doughnut',{
+    labels: groups.map(g=>g.label),
+    datasets:[{ data: groups.map(g=>g.val), backgroundColor: groups.map(g=>g.color), borderWidth:0, hoverOffset:8 }]
+  },{
+    responsive:true, maintainAspectRatio:false,
+    cutout:'65%',
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label: ctx=>`${ctx.label}: ${fmtNum(ctx.raw)} (${(ctx.raw/total*100).toFixed(1)}%)`}} }
+  });
+  const leg = document.getElementById('mamDonutLegend');
+  leg.innerHTML = groups.map(g=>`
+    <div class="legend-row">
+      <div class="legend-dot" style="background:${g.color}"></div>
+      <div><b>${g.label}</b><br><span style="color:#888;font-size:.75rem">${fmtNum(g.val)} — ${(g.val/total*100).toFixed(1)}%</span></div>
+    </div>`).join('');
+}
+
+function renderBigMam() {
+  const bigIds = ['põder','hirv','kits','metssiga','kobras','hüljes','karu'];
+  const colors = ['#6c63ff','#a78bfa','#60a5fa','#f87171','#34d399','#22d3ee','#fbbf24'];
+  const datasets = bigIds.map((id,i) => {
+    const sp = MAMMALS.find(m=>m.id===id);
+    return { label:sp.name, data:sp.cnt.slice(), borderColor:colors[i], backgroundColor:colors[i]+'33', fill:false, tension:.35, pointRadius:2 };
+  });
+  makeChart('bigMamChart','line',{ labels:YEARS.map(String), datasets },{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{ legend:{display:true,position:'bottom',labels:{color:'#aaa',boxWidth:10,font:{size:10}}}, tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtNum(ctx.parsed.y)}`}} },
+    scales:{ x:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}, y:{ticks:{color:'#888',font:{size:10},callback:v=>fmtNum(v)},grid:{color:'rgba(255,255,255,.06)'}} }
+  });
+}
+
+function renderLivestock() {
+  const livIds = ['veised','sead','lambad','hobused','koer','kass'];
+  const colors = CAT_COLORS.livestock;
+  const datasets = livIds.map((id,i) => {
+    const sp = MAMMALS.find(m=>m.id===id);
+    return { label:sp.name, data:sp.bio.slice(), borderColor:colors[i], backgroundColor:colors[i]+'44', fill:true, tension:.35, pointRadius:2 };
+  });
+  makeChart('livestockChart','line',{ labels:YEARS.map(String), datasets },{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{ legend:{display:true,position:'bottom',labels:{color:'#aaa',boxWidth:10,font:{size:10}}}, tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmtNum(ctx.parsed.y)} t`}} },
+    scales:{ x:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}, y:{ticks:{color:'#888',font:{size:10},callback:v=>fmtNum(v)+' t'},grid:{color:'rgba(255,255,255,.06)'}} }
+  });
+}
+
+// ─── BIRDS ───────────────────────────────────────────────────────────────────
+function buildBirdSpeciesBtns() {
+  const c = document.getElementById('bird-species-btns');
+  c.innerHTML = '';
+  BIRDS.forEach((sp,i) => {
+    const col = birdColor(sp, BIRDS.filter(b=>b.cat===sp.cat).indexOf(sp));
+    const btn = document.createElement('button');
+    btn.className = 'sp-btn ' + (birdOn.has(sp.id)?'on':'off');
+    btn.style.borderColor = birdOn.has(sp.id) ? col : 'transparent';
+    btn.style.background = birdOn.has(sp.id) ? col+'22' : '';
+    btn.innerHTML = `<span class="ico">${sp.ico}</span>${sp.name}`;
+    btn.onclick = () => {
+      birdOn.has(sp.id) ? birdOn.delete(sp.id) : birdOn.add(sp.id);
+      buildBirdSpeciesBtns();
+      renderBirdLine();
+    };
+    c.appendChild(btn);
+  });
+}
+
+function setBirdMetric(m) {
+  birdMetric = m;
+  document.getElementById('bird-metric-bio').classList.toggle('active', m==='bio');
+  document.getElementById('bird-metric-cnt').classList.toggle('active', m==='cnt');
+  renderBirdLine();
+}
+function setBirdScale(s) {
+  birdScale = s;
+  document.getElementById('bird-scale-abs').classList.toggle('active', s==='abs');
+  document.getElementById('bird-scale-pct').classList.toggle('active', s==='pct');
+  renderBirdLine();
+}
+
+function renderBirdStats() {
+  const li = YEARS.indexOf(2024);
+  const wildBio = BIRDS.filter(b=>b.cat==='wild').reduce((s,b)=>s+b.bio[li],0);
+  const domBio  = BIRDS.find(b=>b.id==='kodulind').bio[li];
+  const wildCnt = BIRDS.filter(b=>b.cat==='wild').reduce((s,b)=>s+b.cnt[li],0);
+  const pct1990 = BIRDS.filter(b=>b.cat==='wild').reduce((s,b)=>s+b.cnt[0],0);
+  const el = document.getElementById('bird-stats');
+  el.innerHTML = `
+    <div class="stat-box"><div class="val" style="color:#43e97b">${Math.round(wildBio)} t</div><div class="lbl">🐦 Haudelinnud biomass 2024</div></div>
+    <div class="stat-box"><div class="val" style="color:#f9ca24">${Math.round(domBio)} t</div><div class="lbl">🐓 Kodulinnud biomass 2024</div></div>
+    <div class="stat-box"><div class="val" style="color:#60a5fa">${fmtNum(wildCnt)}</div><div class="lbl">Haudelindude arvukus 2024</div></div>
+    <div class="stat-box"><div class="val" style="color:#f87171">−${Math.round((1-wildCnt/pct1990)*100)}%</div><div class="lbl">Haudelindude muutus 1990→2024</div></div>
+  `;
+}
+
+function renderBirds() {
+  renderBirdStats();
+  buildBirdSpeciesBtns();
+  renderBirdLine();
+  renderBirdDonut();
+  renderBirdChange();
+}
+
+function renderBirdLine() {
+  const active = BIRDS.filter(b => birdOn.has(b.id));
+  const key = birdMetric==='bio'?'bio':'cnt';
+
+  let datasets;
+  if(birdScale==='pct') {
+    const totals = YEARS.map((_,yi) => active.reduce((s,sp)=>s+(sp[key][yi]||0),0));
+    datasets = active.map((sp,i) => {
+      const col = birdColor(sp, BIRDS.filter(b=>b.cat===sp.cat).indexOf(sp));
+      return { label:sp.name, data:sp[key].map((v,yi)=>totals[yi]>0?v/totals[yi]*100:0), borderColor:col, backgroundColor:col+'44', fill:true, tension:.35, pointRadius:3 };
+    });
+  } else {
+    datasets = active.map((sp,i) => {
+      const col = birdColor(sp, BIRDS.filter(b=>b.cat===sp.cat).indexOf(sp));
+      return { label:sp.name, data:sp[key].slice(), borderColor:col, backgroundColor:col+'33', fill:false, tension:.35, pointRadius:3 };
+    });
+  }
+  const yLabel = birdScale==='pct'?'%':(key==='bio'?'Biomass (t)':'Isendit');
+  makeChart('birdLineChart','line',{ labels:YEARS.map(String), datasets },{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{ legend:{display:true,position:'bottom',labels:{color:'#aaa',boxWidth:12,font:{size:11}}}, tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${birdScale==='pct'?ctx.parsed.y.toFixed(1)+'%':fmtNum(ctx.parsed.y)}`}} },
+    scales:{ x:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}}, y:{stacked:birdScale==='pct',ticks:{color:'#888',font:{size:10},callback:v=>birdScale==='pct'?v+'%':fmtNum(v)},grid:{color:'rgba(255,255,255,.06)'},title:{display:true,text:yLabel,color:'#666',font:{size:11}}} }
+  });
+}
+
+function renderBirdDonut() {
+  const li = YEARS.indexOf(2024);
+  const groups = BIRDS.map((b,i)=>({ label:b.name, val:b.bio[li], color:birdColor(b,i) }));
+  const total = groups.reduce((s,g)=>s+g.val,0);
+  makeChart('birdDonut','doughnut',{
+    labels: groups.map(g=>g.label),
+    datasets:[{ data:groups.map(g=>g.val), backgroundColor:groups.map(g=>g.color), borderWidth:0, hoverOffset:8 }]
+  },{
+    responsive:true, maintainAspectRatio:false,
+    cutout:'65%',
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmtNum(ctx.raw)} t (${(ctx.raw/total*100).toFixed(1)}%)`}} }
+  });
+  const leg = document.getElementById('birdDonutLegend');
+  leg.innerHTML = groups.map(g=>`
+    <div class="legend-row">
+      <div class="legend-dot" style="background:${g.color}"></div>
+      <div><b>${g.name}</b><br><span style="color:#888;font-size:.75rem">${g.val.toFixed(0)} t — ${(g.val/total*100).toFixed(1)}%</span></div>
+    </div>`).join('');
+}
+
+function renderBirdChange() {
+  const i0 = YEARS.indexOf(1990), li = YEARS.indexOf(2024);
+  const groups = BIRDS.map(b=>({
+    name:b.name, ico:b.ico,
+    pct: ((b.cnt[li]-b.cnt[i0])/b.cnt[i0]*100),
+    color: birdColor(b, BIRDS.filter(bb=>bb.cat===b.cat).indexOf(b))
+  }));
+  makeChart('birdChangeChart','bar',{
+    labels: groups.map(g=>`${g.ico} ${g.name}`),
+    datasets:[{ data:groups.map(g=>g.pct), backgroundColor:groups.map(g=>g.pct>=0?'#43e97b88':'#f8717188'), borderColor:groups.map(g=>g.pct>=0?'#43e97b':'#f87171'), borderWidth:1.5, borderRadius:6 }]
+  },{
+    responsive:true, maintainAspectRatio:false,
+    indexAxis:'y',
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x.toFixed(1)}%`}} },
+    scales:{ x:{ticks:{color:'#888',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.06)'}}, y:{ticks:{color:'#ccc',font:{size:11}},grid:{color:'rgba(255,255,255,.04)'}} }
+  });
+}
+
+// ─── COMPARE 2024 ────────────────────────────────────────────────────────────
+function setCmpMode(m) {
+  cmpMode = m;
+  document.getElementById('cmp-abs').classList.toggle('active',m==='abs');
+  document.getElementById('cmp-pct').classList.toggle('active',m==='pct');
+  renderCmpBar();
+}
+
+function renderCompare() {
+  renderCmpBar();
+  renderPictogram();
+  renderBubble();
+}
+
+function getCmpGroups() {
+  const li = YEARS.indexOf(2024);
+  return [
+    { name:'Metsloomad', ico:'🦌', bio:MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+m.bio[li],0), cnt:MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+(m.cnt[li]||0),0), color:'#6c63ff' },
+    { name:'Kariloomad',  ico:'🐄', bio:MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+m.bio[li],0), cnt:MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+(m.cnt[li]||0),0), color:'#f97316' },
+    { name:'Inimesed',    ico:'🧑', bio:MAMMALS.find(m=>m.id==='inimene').bio[li], cnt:MAMMALS.find(m=>m.id==='inimene').cnt[li], color:'#ec4899' },
+    { name:'Haudelinnud', ico:'🐦', bio:BIRDS.filter(b=>b.cat==='wild').reduce((s,b)=>s+b.bio[li],0), cnt:BIRDS.filter(b=>b.cat==='wild').reduce((s,b)=>s+b.cnt[li],0), color:'#43e97b' },
+    { name:'Kodulinnud',  ico:'🐓', bio:BIRDS.find(b=>b.id==='kodulind').bio[li], cnt:BIRDS.find(b=>b.id==='kodulind').cnt[li], color:'#f9ca24' },
+  ];
+}
+
+function renderCmpBar() {
+  const groups = getCmpGroups();
+  const total = groups.reduce((s,g)=>s+g.bio,0);
+  const vals = cmpMode==='pct' ? groups.map(g=>+(g.bio/total*100).toFixed(2)) : groups.map(g=>g.bio);
+  makeChart('cmpBarChart','bar',{
+    labels: groups.map(g=>`${g.ico} ${g.name}`),
+    datasets:[{ data:vals, backgroundColor:groups.map(g=>g.color+'cc'), borderColor:groups.map(g=>g.color), borderWidth:1.5, borderRadius:8 }]
+  },{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${cmpMode==='pct'?ctx.parsed.y.toFixed(2)+'%':fmtNum(ctx.parsed.y)+' t'}`}} },
+    scales:{ x:{ticks:{color:'#ccc',font:{size:11}},grid:{color:'rgba(255,255,255,.04)'}}, y:{ticks:{color:'#888',font:{size:10},callback:v=>cmpMode==='pct'?v+'%':fmtNum(v)+' t'},grid:{color:'rgba(255,255,255,.06)'}} }
+  });
+}
+
+function renderPictogram() {
+  const groups = getCmpGroups();
+  const maxBio = Math.max(...groups.map(g=>g.bio));
+  const el = document.getElementById('pictogram');
+  el.innerHTML = `<div style="font-size:.75rem;color:var(--muted);margin-bottom:.8rem;">Kõrgus = biomass proportsioon</div>`;
+  const strip = document.createElement('div');
+  strip.className = 'pict-strip';
+  groups.forEach(g => {
+    const h = Math.max(20, Math.round(g.bio/maxBio*180));
+    const pct = (g.bio / groups.reduce((s,x)=>s+x.bio,0)*100).toFixed(1);
+    const d = document.createElement('div');
+    d.className = 'pict-unit';
+    d.style.flex = '1';
+    d.style.minWidth = '60px';
+    d.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:190px;">
+        <div style="font-size:2.2rem;line-height:1;margin-bottom:4px;">${g.ico}</div>
+        <div style="width:48px;height:${h}px;background:${g.color}cc;border-radius:6px 6px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:4px;font-size:.7rem;color:#fff;font-weight:700;">${pct}%</div>
+      </div>
+      <div class="lbl2" style="color:${g.color};font-weight:600;">${g.name}</div>
+      <div class="lbl2">${fmtNum(g.bio)} t</div>
+    `;
+    strip.appendChild(d);
+  });
+  el.appendChild(strip);
+}
+
+function renderBubble() {
+  const groups = getCmpGroups();
+  // bubble: x=log(cnt), y=log(bio), r=proportional to bio
+  const maxBio = Math.max(...groups.map(g=>g.bio));
+  const datasets = groups.map(g => ({
+    label: g.name,
+    data: [{ x: Math.log10(g.cnt||1), y: Math.log10(g.bio||1), r: Math.max(8, Math.sqrt(g.bio/maxBio)*60) }],
+    backgroundColor: g.color+'99',
+    borderColor: g.color,
+    borderWidth:1.5,
+  }));
+  makeChart('bubbleChart','bubble',{ datasets },{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{ display:true, position:'bottom', labels:{color:'#aaa',boxWidth:12,font:{size:11}} },
+      tooltip:{ callbacks:{ label: ctx => {
+        const g = groups[datasets.indexOf(ctx.dataset)];
+        return [`${g.ico} ${g.name}`, `Arvukus: ${fmtNum(g.cnt)}`, `Biomass: ${fmtNum(g.bio)} t`];
+      }}}
+    },
+    scales:{
+      x:{ title:{display:true,text:'log₁₀(arvukus)',color:'#666',font:{size:11}}, ticks:{color:'#888',font:{size:10},callback:v=>'10^'+v}, grid:{color:'rgba(255,255,255,.04)'} },
+      y:{ title:{display:true,text:'log₁₀(biomass, t)',color:'#666',font:{size:11}}, ticks:{color:'#888',font:{size:10},callback:v=>'10^'+v}, grid:{color:'rgba(255,255,255,.06)'} }
+    }
+  });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  renderMamStats();
+  buildMamSpeciesBtns();
+  renderMamLine();
+  renderMamDonut();
+  renderBigMam();
+  renderLivestock();
+}
+
+init();
+</script>
+</body>
+</html>
