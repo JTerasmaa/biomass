@@ -6,6 +6,8 @@
 <title>Eesti loomade biomass</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -95,6 +97,88 @@
   .chart-wrap-tall { position: relative; height: 380px; }
 
   footer { text-align: center; padding: 2rem; color: var(--muted); font-size: .75rem; border-top: 1px solid var(--border); }
+
+  /* ── EXPORT BUTTONS ── */
+  .export-bar { display: flex; gap: .8rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .export-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .6rem 1.4rem; border-radius: 8px; font-size: .88rem; font-weight: 700;
+    cursor: pointer; border: none; transition: all .2s; text-decoration: none;
+  }
+  .export-btn.pdf { background: linear-gradient(135deg,#e53e3e,#c53030); color: #fff; }
+  .export-btn.png { background: linear-gradient(135deg,#2b6cb0,#2c5282); color: #fff; }
+  .export-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .export-btn:active { transform: translateY(0); }
+  .export-spin { display: none; }
+  .exporting .export-spin { display: inline; }
+  .exporting .export-ico { display: none; }
+
+  /* ── A4 POSTER (hidden, used for export) ── */
+  #a4-poster {
+    position: fixed; left: -9999px; top: 0;
+    width: 794px; min-height: 1123px;
+    background: #09090f;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: #e8e8f0;
+    padding: 32px 36px 28px;
+    box-sizing: border-box;
+  }
+  #a4-poster .p-header {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #2a2a40; padding-bottom: 14px; margin-bottom: 18px;
+  }
+  #a4-poster .p-title { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #888; }
+  #a4-poster .p-logo { font-size: 11px; color: #555; text-align: right; line-height: 1.4; }
+
+  #a4-poster .p-hero { text-align: center; margin-bottom: 16px; }
+  #a4-poster .p-hero-pct {
+    font-size: 96px; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg,#6c63ff,#43e97b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+  }
+  #a4-poster .p-hero-sub { font-size: 18px; font-weight: 800; margin: 4px 0 6px; color: #e8e8f0; }
+  #a4-poster .p-hero-sub2 { font-size: 11px; color: #888; line-height: 1.5; max-width: 500px; margin: 0 auto; }
+
+  #a4-poster .p-propbar { display: flex; height: 38px; border-radius: 8px; overflow: hidden; margin: 14px 0 5px; }
+  #a4-poster .p-propseg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: rgba(255,255,255,.92); }
+  #a4-poster .p-proplbls { display: flex; margin-bottom: 14px; }
+  #a4-poster .p-proplbl { font-size: 9.5px; color: #888; text-align: center; line-height: 1.4; }
+
+  #a4-poster .p-facts { display: flex; gap: 10px; margin-bottom: 14px; }
+  #a4-poster .p-fact {
+    flex: 1; border-radius: 12px; padding: 12px 11px;
+    border: 1px solid #2a2a40;
+  }
+  #a4-poster .p-fact-ico { font-size: 18px; margin-bottom: 4px; display: block; }
+  #a4-poster .p-fact-num { font-size: 22px; font-weight: 900; line-height: 1; margin-bottom: 4px; letter-spacing: -0.03em; }
+  #a4-poster .p-fact-desc { font-size: 9.5px; color: #999; line-height: 1.45; }
+  #a4-poster .p-fact-desc b { color: #e8e8f0; }
+
+  #a4-poster .p-cols { display: flex; gap: 10px; margin-bottom: 12px; }
+  #a4-poster .p-col { flex: 1; background: #12121a; border: 1px solid #2a2a40; border-radius: 12px; padding: 12px; }
+  #a4-poster .p-col-title { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #666; margin-bottom: 10px; }
+
+  #a4-poster .p-cbar { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  #a4-poster .p-cbar-ico { font-size: 12px; width: 16px; text-align: center; flex-shrink: 0; }
+  #a4-poster .p-cbar-name { font-size: 9px; color: #ccc; width: 68px; flex-shrink: 0; line-height: 1.2; }
+  #a4-poster .p-cbar-track { flex: 1; background: rgba(255,255,255,.06); border-radius: 3px; height: 14px; overflow: hidden; }
+  #a4-poster .p-cbar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 5px; }
+  #a4-poster .p-cbar-fill span { font-size: 8px; font-weight: 700; color: rgba(255,255,255,.9); white-space: nowrap; }
+  #a4-poster .p-cbar-chg { min-width: 36px; text-align: right; font-size: 8.5px; font-weight: 700; padding-left: 4px; }
+
+  #a4-poster .p-trend-item { display: flex; gap: 7px; margin-bottom: 8px; align-items: flex-start; }
+  #a4-poster .p-trend-arrow { font-size: 13px; width: 16px; flex-shrink: 0; }
+  #a4-poster .p-trend-text { font-size: 9.5px; line-height: 1.45; color: #999; }
+  #a4-poster .p-trend-text b { color: #e8e8f0; }
+
+  #a4-poster .p-sig {
+    border-top: 1px solid #2a2a40; margin-top: 14px; padding-top: 12px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  #a4-poster .p-sig-author { font-size: 12px; font-weight: 800; color: #e8e8f0; }
+  #a4-poster .p-sig-affil { font-size: 10px; color: #888; margin-top: 2px; }
+  #a4-poster .p-sig-src { font-size: 8px; color: #555; text-align: right; line-height: 1.5; max-width: 340px; }
 
   /* ── INFOGRAPHIC ── */
   .poster { max-width: 900px; margin: 0 auto; }
@@ -338,6 +422,16 @@
   <div class="section" id="sec-poster">
   <div class="poster">
 
+    <!-- EXPORT BUTTONS -->
+    <div class="export-bar">
+      <button class="export-btn pdf" id="btn-pdf" onclick="exportPDF()">
+        <span class="export-ico">⬇ PDF</span><span class="export-spin">⏳ Genereerin…</span>
+      </button>
+      <button class="export-btn png" id="btn-png" onclick="exportPNG()">
+        <span class="export-ico">🖼 PNG</span><span class="export-spin">⏳ Genereerin…</span>
+      </button>
+    </div>
+
     <!-- HERO -->
     <div class="hero-block">
       <div class="hero-pct">~4%</div>
@@ -418,6 +512,9 @@
   </div><!-- /poster -->
 
 </div><!-- /container -->
+
+<!-- A4 POSTER (off-screen, built dynamically for export) -->
+<div id="a4-poster"></div>
 
 <footer>
   Koostanud <strong style="color:var(--text)">Jaanus Terasmaa (TLÜ)</strong> &nbsp;·&nbsp;
@@ -1033,6 +1130,187 @@ function init() {
 }
 
 init();
+
+// ─── A4 POSTER BUILD ─────────────────────────────────────────────────────────
+function buildA4Poster() {
+  const li = YEARS.indexOf(2024);
+  const wildBio = MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+m.bio[li],0);
+  const liveBio = MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+m.bio[li],0);
+  const humBio  = MAMMALS.find(m=>m.id==='inimene').bio[li];
+  const total   = wildBio + liveBio + humBio;
+
+  const segs = [
+    { pct: wildBio/total*100, color:'#6c63ff', label:'🦌 Metsloomad', sub:(wildBio/1000).toFixed(1)+'k t' },
+    { pct: liveBio/total*100, color:'#f97316', label:'🐄 Kariloomad', sub:(liveBio/1000).toFixed(0)+'k t' },
+    { pct: humBio/total*100,  color:'#ec4899', label:'🧑 Inimesed',   sub:(humBio/1000).toFixed(0)+'k t' },
+  ];
+
+  const critters = [
+    { ico:'🐄', name:'Veised',     bio:111552, color:'#f97316' },
+    { ico:'🧑', name:'Inimesed',  bio:97603,  color:'#ec4899' },
+    { ico:'🐷', name:'Sead',      bio:22688,  color:'#fb923c' },
+    { ico:'🫎', name:'Põder',     bio:3255,   color:'#6c63ff' },
+    { ico:'🐗', name:'Metskits',  bio:1740,   color:'#818cf8' },
+    { ico:'🦭', name:'Hallhüljes',bio:1105,   color:'#22d3ee' },
+    { ico:'🦌', name:'Punahirv',  bio:1540,   color:'#a78bfa' },
+    { ico:'🐻', name:'Karu',      bio:155,    color:'#34d399' },
+  ];
+  const maxC = Math.max(...critters.map(c=>c.bio));
+
+  const birdRows = [
+    { ico:'🦉', name:'Metsalinnud',     bio:539,   chgPct:-35.8, color:'#43e97b' },
+    { ico:'🦢', name:'Vee- ja ranna',   bio:977.6, chgPct:-37.3, color:'#38f9d7' },
+    { ico:'🦜', name:'Niidu- ja kult.', bio:159.5, chgPct:-42.0, color:'#4facfe' },
+    { ico:'🐦', name:'Soolinnud',       bio:18.5,  chgPct:-38.3, color:'#f093fb' },
+    { ico:'🐓', name:'Kodulinnud',      bio:4800,  chgPct:+20.0, color:'#f9ca24' },
+  ];
+  const maxB = Math.max(...birdRows.map(b=>b.bio));
+
+  const trends = [
+    { arrow:'📉', col:'#f97316', text:'<b>Kariloomade biomass −67%</b> (1990→2024)<br>436 400 t → 145 149 t. Põllumajanduse intensiivistumine.' },
+    { arrow:'📈', col:'#43e97b', text:'<b>Punahirv +55× arvukust</b><br>200 → 11 000 isendit. Eduka taastumise näide.' },
+    { arrow:'📉', col:'#f87171', text:'<b>Haudelinnud −38% arvukust</b><br>31,2 mln → 19,9 mln isendit alates 1990.' },
+    { arrow:'📈', col:'#f9ca24', text:'<b>Kodulinnud ületasid haudelinnud</b><br>Kodulinnud 4 800 t vs haudelinnud 1 695 t.' },
+    { arrow:'🦭', col:'#22d3ee', text:'<b>Hallhüljes +225% arvukust</b><br>2 000 → 6 500 isendit. Küttimiskeelu mõju.' },
+  ];
+
+  document.getElementById('a4-poster').innerHTML = `
+    <div class="p-header">
+      <div class="p-title">Eesti imetajate ja lindude biomass &amp; arvukus 1990–2024</div>
+      <div class="p-logo">Biomass = isendite arv × kehamass<br>Andmed: Statistikaamet · KKA · Elts et al. 2019</div>
+    </div>
+
+    <div class="p-hero">
+      <div class="p-hero-pct">~4%</div>
+      <div class="p-hero-sub">Eesti imetajate biomassist on looduslik</div>
+      <div class="p-hero-sub2">Ülejäänu kannavad inimesed ja nende kariloomad — see peegeldab globaalset trendi, kus tsivilisatsioon on looduslikku biomassi asendanud.</div>
+    </div>
+
+    <div class="p-propbar">
+      ${segs.map(s=>`<div class="p-propseg" style="flex:${s.pct};background:${s.color}cc;">${s.pct>=6?s.pct.toFixed(1)+'%':''}</div>`).join('')}
+    </div>
+    <div class="p-proplbls">
+      ${segs.map(s=>`<div class="p-proplbl" style="flex:${s.pct};color:${s.color};">${s.label}<br>${s.sub}</div>`).join('')}
+    </div>
+
+    <div class="p-facts">
+      <div class="p-fact" style="background:rgba(108,99,255,.1);">
+        <span class="p-fact-ico">🦌</span>
+        <div class="p-fact-num" style="color:#6c63ff">10 386 t</div>
+        <div class="p-fact-desc"><b>Kõik metsloomad kokku</b> — 18 liiki/rühma. Umbes sama palju kui 22 000 veist.</div>
+      </div>
+      <div class="p-fact" style="background:rgba(249,115,22,.1);">
+        <span class="p-fact-ico">🐄</span>
+        <div class="p-fact-num" style="color:#f97316">145 149 t</div>
+        <div class="p-fact-desc"><b>Kariloomade biomass</b> — veised, sead, lambad, hobused, koerad, kassid. <b>14× rohkem</b> kui metsloomadel.</div>
+      </div>
+      <div class="p-fact" style="background:rgba(236,72,153,.1);">
+        <span class="p-fact-ico">🧑</span>
+        <div class="p-fact-num" style="color:#ec4899">97 603 t</div>
+        <div class="p-fact-desc"><b>Inimeste biomass</b> — 1,37 miljonit elanikku × 71 kg. <b>9× rohkem</b> kui kõik metsloomad.</div>
+      </div>
+    </div>
+
+    <div class="p-cols">
+      <div class="p-col">
+        <div class="p-col-title">Biomass 2024 — liigid võrdluses</div>
+        ${critters.map(c=>`
+          <div class="p-cbar">
+            <div class="p-cbar-ico">${c.ico}</div>
+            <div class="p-cbar-name">${c.name}</div>
+            <div class="p-cbar-track">
+              <div class="p-cbar-fill" style="width:${Math.max(2,c.bio/maxC*100)}%;background:${c.color}bb;">
+                <span>${c.bio>=1000?(c.bio/1000).toFixed(0)+'k t':c.bio+' t'}</span>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="p-col">
+        <div class="p-col-title">Peamised tähelepanekud</div>
+        ${trends.map(t=>`
+          <div class="p-trend-item">
+            <div class="p-trend-arrow" style="color:${t.col}">${t.arrow}</div>
+            <div class="p-trend-text">${t.text}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="p-col" style="margin-bottom:12px;">
+      <div class="p-col-title">Linnud — biomass 2024 (t) ja arvukuse muutus 1990→2024</div>
+      ${birdRows.map(b=>`
+        <div class="p-cbar">
+          <div class="p-cbar-ico">${b.ico}</div>
+          <div class="p-cbar-name">${b.name}</div>
+          <div class="p-cbar-track">
+            <div class="p-cbar-fill" style="width:${Math.max(2,b.bio/maxB*100)}%;background:${b.color}bb;">
+              <span>${b.bio.toFixed(0)} t</span>
+            </div>
+          </div>
+          <div class="p-cbar-chg" style="color:${b.chgPct>=0?'#43e97b':'#f87171'}">${b.chgPct>=0?'▲':'▼'}${Math.abs(b.chgPct)}%</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="p-sig">
+      <div>
+        <div class="p-sig-author">Jaanus Terasmaa</div>
+        <div class="p-sig-affil">Tallinna Ülikool (TLÜ) · 2024</div>
+      </div>
+      <div class="p-sig-src">
+        Allikad: Statistikaamet · Keskkonnaagentuuri ulukiseire<br>
+        Elts et al. 2019 (EOÜ, Hirundo) · PRIA · Kõik arvud hinnangulised<br>
+        jterasmaa.github.io/biomass
+      </div>
+    </div>
+  `;
+}
+
+// ─── EXPORT HELPERS ──────────────────────────────────────────────────────────
+async function captureA4() {
+  buildA4Poster();
+  const el = document.getElementById('a4-poster');
+  el.style.left = '-9999px';
+  el.style.display = 'block';
+  await new Promise(r => setTimeout(r, 300)); // allow emoji fonts to load
+  const canvas = await html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#09090f',
+    width: 794,
+    windowWidth: 794,
+    logging: false,
+  });
+  el.style.display = '';
+  return canvas;
+}
+
+async function exportPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.classList.add('exporting'); btn.disabled = true;
+  try {
+    const canvas = await captureA4();
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const imgData = canvas.toDataURL('image/png');
+    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+    pdf.save('eesti-biomass.pdf');
+  } finally {
+    btn.classList.remove('exporting'); btn.disabled = false;
+  }
+}
+
+async function exportPNG() {
+  const btn = document.getElementById('btn-png');
+  btn.classList.add('exporting'); btn.disabled = true;
+  try {
+    const canvas = await captureA4();
+    const link = document.createElement('a');
+    link.download = 'eesti-biomass.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } finally {
+    btn.classList.remove('exporting'); btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
