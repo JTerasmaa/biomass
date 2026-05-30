@@ -95,6 +95,102 @@
   .chart-wrap-tall { position: relative; height: 380px; }
 
   footer { text-align: center; padding: 2rem; color: var(--muted); font-size: .75rem; border-top: 1px solid var(--border); }
+
+  /* ── INFOGRAPHIC ── */
+  .poster { max-width: 900px; margin: 0 auto; }
+
+  .hero-block {
+    text-align: center;
+    padding: 3rem 2rem 2.5rem;
+    background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,.18) 0%, transparent 70%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-block::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.015) 0px, rgba(255,255,255,.015) 1px, transparent 1px, transparent 60px);
+    pointer-events: none;
+  }
+  .hero-pct {
+    font-size: clamp(5rem, 18vw, 9rem);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, #6c63ff, #43e97b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.04em;
+  }
+  .hero-sub {
+    font-size: clamp(1rem, 3vw, 1.45rem);
+    font-weight: 700;
+    color: var(--text);
+    margin: .4rem 0 .8rem;
+    line-height: 1.3;
+  }
+  .hero-sub2 { font-size: .9rem; color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+
+  /* proportion bar */
+  .prop-bar-wrap { margin: 2rem 0 .6rem; }
+  .prop-bar { display: flex; height: 52px; border-radius: 10px; overflow: hidden; width: 100%; }
+  .prop-seg { display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: rgba(255,255,255,.9); transition: flex .6s; position: relative; overflow: hidden; }
+  .prop-seg span { position: relative; z-index: 1; white-space: nowrap; padding: 0 .3rem; }
+  .prop-labels { display: flex; margin-top: .5rem; }
+  .prop-lbl { font-size: .72rem; color: var(--muted); text-align: center; }
+
+  /* key facts grid */
+  .facts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width:680px) { .facts-grid { grid-template-columns: 1fr; } }
+  .fact-card {
+    border-radius: 16px;
+    padding: 1.4rem 1.2rem;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .fact-card::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    opacity: .12;
+  }
+  .fact-ico { font-size: 2rem; margin-bottom: .6rem; display: block; }
+  .fact-num { font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: .3rem; letter-spacing: -0.03em; }
+  .fact-desc { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+  .fact-desc strong { color: var(--text); }
+
+  /* comparison row */
+  .cmp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media(max-width:680px) { .cmp-row { grid-template-columns: 1fr; } }
+
+  .critter-bar-section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; }
+  .critter-bar-section h4 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+  .critter-row { display: flex; align-items: center; gap: .8rem; margin-bottom: .7rem; }
+  .critter-ico { font-size: 1.3rem; width: 1.8rem; text-align: center; flex-shrink: 0; }
+  .critter-name { font-size: .78rem; color: var(--text); width: 100px; flex-shrink: 0; line-height: 1.2; }
+  .critter-track { flex: 1; background: rgba(255,255,255,.05); border-radius: 4px; height: 18px; overflow: hidden; }
+  .critter-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 6px; }
+  .critter-fill span { font-size: .68rem; font-weight: 700; color: rgba(255,255,255,.9); white-space: nowrap; }
+
+  /* trend arrow block */
+  .trend-block { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; }
+  .trend-block h4 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+  .trend-item { display: flex; align-items: center; gap: .8rem; margin-bottom: .8rem; }
+  .trend-arrow { font-size: 1.4rem; width: 1.8rem; text-align: center; }
+  .trend-text { font-size: .82rem; line-height: 1.4; }
+  .trend-text b { color: var(--text); }
+  .trend-text small { color: var(--muted); }
+
+  /* poster signature */
+  .poster-sig { text-align: center; padding: 1.8rem 1rem 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }
+  .poster-sig .author { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .poster-sig .affil { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+  .poster-sig .year { font-size: .75rem; color: #555; margin-top: .4rem; }
 </style>
 </head>
 <body>
@@ -111,6 +207,7 @@
     <button class="active" onclick="showSection('mammals')">🦌 Imetajad</button>
     <button onclick="showSection('birds')">🐦 Linnud</button>
     <button onclick="showSection('compare24')">📊 2024 võrdlus</button>
+    <button onclick="showSection('poster')">🖼 Infograafik</button>
   </div>
 
   <!-- ============================================================ MAMMALS ============================================================ -->
@@ -237,10 +334,94 @@
 
   </div><!-- /compare -->
 
+  <!-- ============================================================ POSTER ============================================================ -->
+  <div class="section" id="sec-poster">
+  <div class="poster">
+
+    <!-- HERO -->
+    <div class="hero-block">
+      <div class="hero-pct">~4%</div>
+      <div class="hero-sub">Eesti imetajate biomassist on looduslik</div>
+      <div class="hero-sub2">Ülejäänu kannavad inimesed ja nende kariloomad — see on norm kogu tsiviliseeritud maailmas, kuid arvud teevad selle eriti ilmseks.</div>
+
+      <!-- Proportion bar -->
+      <div class="prop-bar-wrap">
+        <div class="prop-bar" id="posterPropBar"></div>
+        <div class="prop-labels" id="posterPropLabels"></div>
+      </div>
+    </div>
+
+    <!-- KEY FACTS -->
+    <div class="facts-grid">
+      <div class="fact-card" style="background:linear-gradient(135deg,rgba(108,99,255,.12),rgba(108,99,255,.04));">
+        <span class="fact-ico">🦌</span>
+        <div class="fact-num" style="color:#6c63ff">10 386 t</div>
+        <div class="fact-desc"><strong>Kõik metsloomad kokku</strong> — põder, metskits, karu, hunt, ilves ja veel 14 liiki. Umbes sama palju kui 22 000 veist.</div>
+      </div>
+      <div class="fact-card" style="background:linear-gradient(135deg,rgba(249,115,22,.12),rgba(249,115,22,.04));">
+        <span class="fact-ico">🐄</span>
+        <div class="fact-num" style="color:#f97316">145 149 t</div>
+        <div class="fact-desc"><strong>Kariloomade biomass</strong> — veised, sead, lambad, hobused, koerad, kassid. <strong>14× rohkem</strong> kui metsloomadel.</div>
+      </div>
+      <div class="fact-card" style="background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(236,72,153,.04));">
+        <span class="fact-ico">🧑</span>
+        <div class="fact-num" style="color:#ec4899">97 603 t</div>
+        <div class="fact-desc"><strong>Inimeste biomass</strong> — 1,37 miljonit elanikku × 71 kg. <strong>9× rohkem</strong> kui kõik metsloomad.</div>
+      </div>
+    </div>
+
+    <!-- CRITTER BARS + TRENDS -->
+    <div class="cmp-row">
+      <div class="critter-bar-section">
+        <h4>Suurimetajate biomass 2024 (t)</h4>
+        <div id="posterCritterBars"></div>
+      </div>
+      <div class="trend-block">
+        <h4>Peamised tähelepanekud</h4>
+        <div class="trend-item">
+          <div class="trend-arrow" style="color:#f97316">📉</div>
+          <div class="trend-text"><b>Kariloomade biomass −67%</b><br><small>1990: 436 400 t → 2024: 145 149 t. Põllumajanduse intensiivistumine.</small></div>
+        </div>
+        <div class="trend-item">
+          <div class="trend-arrow" style="color:#43e97b">📈</div>
+          <div class="trend-text"><b>Punahirv +55× arvukust</b><br><small>1990: 200 isendit → 2024: 11 000 isendit. Eduka taastumise näide.</small></div>
+        </div>
+        <div class="trend-item">
+          <div class="trend-arrow" style="color:#f87171">📉</div>
+          <div class="trend-text"><b>Haudelinnud −38% arvukust</b><br><small>1990: 31,2 mln → 2024: 19,9 mln isendit. Elupaigakadu peamine põhjus.</small></div>
+        </div>
+        <div class="trend-item">
+          <div class="trend-arrow" style="color:#f9ca24">📈</div>
+          <div class="trend-text"><b>Kodulinnud ületasid haudelinnud</b><br><small>Kodulindude biomass (4 800 t) > haudelindude biomass (1 695 t).</small></div>
+        </div>
+        <div class="trend-item">
+          <div class="trend-arrow" style="color:#22d3ee">🦭</div>
+          <div class="trend-text"><b>Hallhüljes +225% arvukust</b><br><small>1990: 2 000 → 2024: 6 500 isendit. Küttimiskeelu mõju.</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIRDS ROW -->
+    <div class="critter-bar-section" style="margin-bottom:1.5rem;">
+      <h4>Linnud — biomass ja arvukuse muutus 1990→2024</h4>
+      <div id="posterBirdBars"></div>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div class="poster-sig">
+      <div class="author">Jaanus Terasmaa</div>
+      <div class="affil">Tallinna Ülikool (TLÜ)</div>
+      <div class="year">Andmed: Statistikaamet · Keskkonnaagentuuri ulukiseire · Elts et al. 2019 · PRIA · 2024</div>
+    </div>
+
+  </div>
+  </div><!-- /poster -->
+
 </div><!-- /container -->
 
 <footer>
-  Allikad: Statistikaamet, Keskkonnaagentuuri ulukiseire, Elts et al. 2019 (EOÜ, Hirundo), PRIA. Kõik arvud hinnangulised.
+  Koostanud <strong style="color:var(--text)">Jaanus Terasmaa (TLÜ)</strong> &nbsp;·&nbsp;
+  Allikad: Statistikaamet, Keskkonnaagentuuri ulukiseire, Elts et al. 2019 (EOÜ, Hirundo), PRIA &nbsp;·&nbsp; Kõik arvud hinnangulised
 </footer>
 
 <script>
@@ -396,11 +577,87 @@ function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
   document.querySelectorAll('.section-tabs button').forEach((b,i) => {
-    const map = ['mammals','birds','compare24'];
+    const map = ['mammals','birds','compare24','poster'];
     b.classList.toggle('active', map[i]===name);
   });
   if(name==='birds') renderBirds();
   if(name==='compare24') renderCompare();
+  if(name==='poster') renderPoster();
+}
+
+// ─── POSTER ──────────────────────────────────────────────────────────────────
+function renderPoster() {
+  const li = YEARS.indexOf(2024);
+  const wildBio  = MAMMALS.filter(m=>m.cat==='wild'||m.cat==='wild-small').reduce((s,m)=>s+m.bio[li],0);
+  const liveBio  = MAMMALS.filter(m=>m.cat==='livestock').reduce((s,m)=>s+m.bio[li],0);
+  const humBio   = MAMMALS.find(m=>m.id==='inimene').bio[li];
+  const total    = wildBio + liveBio + humBio;
+
+  // Proportion bar
+  const segs = [
+    { pct: wildBio/total*100, color:'#6c63ff', label:'🦌 Metsloomad', val: Math.round(wildBio)+'t' },
+    { pct: liveBio/total*100, color:'#f97316', label:'🐄 Kariloomad', val: Math.round(liveBio/1000)+'k t' },
+    { pct: humBio/total*100,  color:'#ec4899', label:'🧑 Inimesed',   val: Math.round(humBio/1000)+'k t' },
+  ];
+  const bar = document.getElementById('posterPropBar');
+  const lbls = document.getElementById('posterPropLabels');
+  bar.innerHTML = segs.map(s=>`
+    <div class="prop-seg" style="flex:${s.pct};background:${s.color}cc;">
+      <span>${s.pct>=8 ? s.pct.toFixed(1)+'%' : ''}</span>
+    </div>`).join('');
+  lbls.innerHTML = segs.map(s=>`
+    <div class="prop-lbl" style="flex:${s.pct};color:${s.color};">
+      ${s.pct>=5 ? s.label+'<br>'+s.val : ''}
+    </div>`).join('');
+
+  // Critter bars — big wild mammals by biomass
+  const critters = [
+    { ico:'🫎', name:'Põder',     bio:3255,   color:'#6c63ff' },
+    { ico:'🐄', name:'Veised',    bio:111552,  color:'#f97316' },
+    { ico:'🧑', name:'Inimesed', bio:97603,   color:'#ec4899' },
+    { ico:'🦌', name:'Punahirv', bio:1540,    color:'#a78bfa' },
+    { ico:'🐷', name:'Sead',     bio:22688,   color:'#fb923c' },
+    { ico:'🐗', name:'Metskits', bio:1740,    color:'#818cf8' },
+    { ico:'🦭', name:'Hallhüljes',bio:1105,   color:'#22d3ee' },
+    { ico:'🐗', name:'Metssiga', bio:1488,    color:'#60a5fa' },
+    { ico:'🐻', name:'Karu',     bio:155,     color:'#34d399' },
+  ];
+  const maxC = Math.max(...critters.map(c=>c.bio));
+  document.getElementById('posterCritterBars').innerHTML = critters.map(c=>`
+    <div class="critter-row">
+      <div class="critter-ico">${c.ico}</div>
+      <div class="critter-name">${c.name}</div>
+      <div class="critter-track">
+        <div class="critter-fill" style="width:${Math.max(2,c.bio/maxC*100)}%;background:${c.color}bb;">
+          <span>${c.bio>=1000?(c.bio/1000).toFixed(0)+'k t':c.bio+' t'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Bird bars
+  const birds2024 = [
+    { ico:'🦉', name:'Metsalinnud',    bio:539,    cnt2024:15400000, cnt1990:24000000, color:'#43e97b' },
+    { ico:'🦢', name:'Vee- ja ranna', bio:977.6,  cnt2024:3760000,  cnt1990:6000000,  color:'#38f9d7' },
+    { ico:'🦜', name:'Niidu- ja kult.',bio:159.5,  cnt2024:2900000,  cnt1990:5000000,  color:'#4facfe' },
+    { ico:'🐦', name:'Soolinnud',      bio:18.5,   cnt2024:740000,   cnt1990:1200000,  color:'#f093fb' },
+    { ico:'🐓', name:'Kodulinnud',     bio:4800,   cnt2024:2400000,  cnt1990:2000000,  color:'#f9ca24' },
+  ];
+  const maxB = Math.max(...birds2024.map(b=>b.bio));
+  document.getElementById('posterBirdBars').innerHTML = birds2024.map(b=>{
+    const chg = ((b.cnt2024-b.cnt1990)/b.cnt1990*100).toFixed(0);
+    const chgCol = chg>=0?'#43e97b':'#f87171';
+    const chgArrow = chg>=0?'▲':'▼';
+    return `<div class="critter-row">
+      <div class="critter-ico">${b.ico}</div>
+      <div class="critter-name" style="width:120px;">${b.name}</div>
+      <div class="critter-track">
+        <div class="critter-fill" style="width:${Math.max(2,b.bio/maxB*100)}%;background:${b.color}bb;">
+          <span>${b.bio.toFixed(0)} t</span>
+        </div>
+      </div>
+      <div style="min-width:60px;text-align:right;font-size:.72rem;font-weight:700;color:${chgCol};padding-left:.5rem;">${chgArrow}${Math.abs(chg)}%</div>
+    </div>`;
+  }).join('');
 }
 
 // ─── MAMMALS ─────────────────────────────────────────────────────────────────
