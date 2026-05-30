@@ -291,6 +291,7 @@
     <button class="active" onclick="showSection('mammals')">🦌 Imetajad</button>
     <button onclick="showSection('birds')">🐦 Linnud</button>
     <button onclick="showSection('compare24')">📊 2024 võrdlus</button>
+    <button onclick="showSection('world')">🌍 Globaalne</button>
     <button onclick="showSection('poster')">🖼 Infograafik</button>
   </div>
 
@@ -418,6 +419,47 @@
 
   </div><!-- /compare -->
 
+  <!-- ============================================================ WORLD ============================================================ -->
+  <div class="section" id="sec-world">
+
+    <div class="highlight">
+      <p>Sama muster kogu maailmas — inimesed ja kariloomad moodustavad imetajate biomassist üle <strong>94%</strong>. Eesti eripära: nõukogude järgne kariloomade kokkuvarisemine tegi Eesti <em>looduslikuma</em> kui globaalne keskmine, kuid muster on sama.</p>
+    </div>
+
+    <div class="stat-row" id="world-stats"></div>
+
+    <div class="card-full">
+      <h3>Proportsioonide võrdlus — Eesti vs Maailm (2024, imetajad)</h3>
+      <div id="world-propbars"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Maailma biomass 2024 — jaotus</h3>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+          <div style="position:relative;width:180px;height:180px;flex-shrink:0;"><canvas id="worldDonut"></canvas></div>
+          <div class="donut-legend" id="worldDonutLegend"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Peamised kontrastid: Eesti vs Maailm</h3>
+        <div id="world-contrasts"></div>
+      </div>
+    </div>
+
+    <div class="card-full">
+      <h3>Indeks 1990 = 100 — Eesti (joon) vs Maailm (katkendlik)</h3>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem;" id="world-index-toggles"></div>
+      <div class="chart-wrap-tall"><canvas id="worldIndexChart"></canvas></div>
+    </div>
+
+    <div class="card-full">
+      <h3>Maailma imetajate biomass absoluutarvudes (Mt)</h3>
+      <div class="chart-wrap"><canvas id="worldAbsChart"></canvas></div>
+    </div>
+
+  </div><!-- /world -->
+
   <!-- ============================================================ POSTER ============================================================ -->
   <div class="section" id="sec-poster">
   <div class="poster">
@@ -524,6 +566,41 @@
 <script>
 // ─── DATA ───────────────────────────────────────────────────────────────────
 const YEARS = [1990,1995,2000,2005,2010,2012,2014,2016,2018,2020,2022,2023,2024];
+
+// ── GLOBAL + ESTONIA AGGREGATE (from biomass-data.json) ──────────────────────
+const W_YEARS = [1990,1995,2000,2005,2010,2015,2020,2024];
+const WORLD = {
+  inimesed:           [266,287,307,327,348,369,392,408],
+  koduloomad:         [460,485,510,540,575,600,620,630],
+  metsloomad_maismaa: [24,23.5,23,22.5,22,21.5,21,20.5],
+  metsloomad_mere:    [48,46,44,43,42,41,40,40],
+  kodulinnud:         [14,17,20,23,26,29,31,33],
+  metslinnud:         [3,2.9,2.8,2.7,2.6,2.5,2.4,2.3],
+};
+// Estonia aggregates (t) from updated JSON — used only for index/comparison charts
+const EE_AGG = {
+  metsloomad: [6857.1,4640.1,5652.7,6820.1,8208,null,11356.7,10251.4],
+  koduloomad: [431900,258550,185452,168985,149298,null,151808,140648.7],
+  inimesed:   [111583.6,102808,97273.7,96418,95149,null,94357.3,97602.8],
+  haudelinnud:[2705,2443.5,2245,2093.5,1994.5,null,1735.9,1694.6],
+  kodulinnud: [4000,3600,3500,3100,3600,null,4740,4800],
+};
+// Index 1990=100
+const IDX_EE = {
+  metsloomad: [100,67.7,82.4,99.5,119.7,161.3,165.6,149.5],
+  koduloomad: [100,59.9,42.9,39.1,34.6,37.7,35.1,32.6],
+  inimesed:   [100,92.1,87.2,86.4,85.3,83.7,84.6,87.5],
+  haudelinnud:[100,90.4,83.0,77.4,73.7,68.0,64.2,62.7],
+  kodulinnud: [100,90.0,87.5,77.5,90.0,110.0,118.5,120.0],
+};
+const IDX_WO = {
+  inimesed:         [100,107.9,115.4,122.9,130.8,138.7,147.4,153.4],
+  koduloomad:       [100,105.4,110.9,117.4,125.0,130.4,134.8,137.0],
+  metsloomad_maismaa:[100,97.9,95.8,93.8,91.7,89.6,87.5,85.4],
+  metsloomad_mere:  [100,95.8,91.7,89.6,87.5,85.4,83.3,83.3],
+  kodulinnud:       [100,121.4,142.9,164.3,185.7,207.1,221.4,235.7],
+  metslinnud:       [100,96.7,93.3,90.0,86.7,83.3,80.0,76.7],
+};
 
 const MAMMALS = [
   { id:'põder',    name:'Põder',             ico:'🫎', cat:'wild',      mass:310,
@@ -674,11 +751,12 @@ function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
   document.querySelectorAll('.section-tabs button').forEach((b,i) => {
-    const map = ['mammals','birds','compare24','poster'];
+    const map = ['mammals','birds','compare24','world','poster'];
     b.classList.toggle('active', map[i]===name);
   });
   if(name==='birds') renderBirds();
   if(name==='compare24') renderCompare();
+  if(name==='world') renderWorld();
   if(name==='poster') renderPoster();
 }
 
@@ -1115,6 +1193,192 @@ function renderBubble() {
     scales:{
       x:{ title:{display:true,text:'log₁₀(arvukus)',color:'#666',font:{size:11}}, ticks:{color:'#888',font:{size:10},callback:v=>'10^'+v}, grid:{color:'rgba(255,255,255,.04)'} },
       y:{ title:{display:true,text:'log₁₀(biomass, t)',color:'#666',font:{size:11}}, ticks:{color:'#888',font:{size:10},callback:v=>'10^'+v}, grid:{color:'rgba(255,255,255,.06)'} }
+    }
+  });
+}
+
+// ─── WORLD ───────────────────────────────────────────────────────────────────
+let worldIndexOn = new Set(['metsloomad','koduloomad','inimesed']);
+
+function renderWorld() {
+  // ── Stats ──
+  const wi = W_YEARS.indexOf(2024);
+  const wWild  = WORLD.metsloomad_maismaa[wi] + WORLD.metsloomad_mere[wi]; // 60.5 Mt
+  const wLive  = WORLD.koduloomad[wi];   // 630
+  const wHum   = WORLD.inimesed[wi];     // 408
+  const wTot   = wWild + wLive + wHum;
+  const wWildPct = (wWild/wTot*100).toFixed(1);
+
+  const eeWild = EE_AGG.metsloomad[wi];  // 10251.4 t
+  const eeLive = EE_AGG.koduloomad[wi];  // 140648.7 t
+  const eeHum  = EE_AGG.inimesed[wi];   // 97602.8 t
+  const eeTot  = eeWild + eeLive + eeHum;
+  const eeWildPct = (eeWild/eeTot*100).toFixed(1);
+
+  document.getElementById('world-stats').innerHTML = `
+    <div class="stat-box"><div class="val" style="color:#6c63ff">${wWildPct}%</div><div class="lbl">🌍 Metsloomad globaalselt</div></div>
+    <div class="stat-box"><div class="val" style="color:#43e97b">${eeWildPct}%</div><div class="lbl">🇪🇪 Metsloomad Eestis</div></div>
+    <div class="stat-box"><div class="val" style="color:#f97316">${wLive.toFixed(0)} Mt</div><div class="lbl">🐄 Kariloomad maailmas</div></div>
+    <div class="stat-box"><div class="val" style="color:#ec4899">${wHum.toFixed(0)} Mt</div><div class="lbl">🧑 Inimesed maailmas</div></div>
+  `;
+
+  // ── Proportion bars ──
+  const bars = [
+    { label:'🌍 Maailm', wild:wWild,  live:wLive,  hum:wHum,  tot:wTot },
+    { label:'🇪🇪 Eesti (t→%)', wild:eeWild, live:eeLive, hum:eeHum, tot:eeTot },
+  ];
+  const propEl = document.getElementById('world-propbars');
+  propEl.innerHTML = bars.map(b => {
+    const wp = b.wild/b.tot*100, lp = b.live/b.tot*100, hp = b.hum/b.tot*100;
+    return `
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:.8rem;color:#888;margin-bottom:.4rem;font-weight:600;">${b.label}</div>
+        <div style="display:flex;height:40px;border-radius:8px;overflow:hidden;">
+          <div style="flex:${wp};background:#6c63ffcc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;">${wp.toFixed(1)}%</div>
+          <div style="flex:${lp};background:#f97316cc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;">${lp.toFixed(1)}%</div>
+          <div style="flex:${hp};background:#ec4899cc;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;">${hp.toFixed(1)}%</div>
+        </div>
+        <div style="display:flex;font-size:.7rem;margin-top:.3rem;">
+          <div style="flex:${wp};color:#6c63ff;">🦌 Metsloomad</div>
+          <div style="flex:${lp};color:#f97316;">🐄 Kariloomad</div>
+          <div style="flex:${hp};color:#ec4899;">🧑 Inimesed</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // ── World donut ──
+  const wGroups = [
+    { label:'Kariloomad',         val:WORLD.koduloomad[wi],          color:'#f97316' },
+    { label:'Inimesed',           val:WORLD.inimesed[wi],            color:'#ec4899' },
+    { label:'Metsloomad (meri)',   val:WORLD.metsloomad_mere[wi],     color:'#22d3ee' },
+    { label:'Metsloomad (maismaa)',val:WORLD.metsloomad_maismaa[wi],  color:'#6c63ff' },
+    { label:'Kodulinnud',         val:WORLD.kodulinnud[wi],          color:'#f9ca24' },
+    { label:'Metslinnud',         val:WORLD.metslinnud[wi],          color:'#43e97b' },
+  ];
+  const wTotal = wGroups.reduce((s,g)=>s+g.val,0);
+  makeChart('worldDonut','doughnut',{
+    labels: wGroups.map(g=>g.label),
+    datasets:[{ data:wGroups.map(g=>g.val), backgroundColor:wGroups.map(g=>g.color), borderWidth:0, hoverOffset:8 }]
+  },{ responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} Mt (${(ctx.raw/wTotal*100).toFixed(1)}%)`}}} });
+  document.getElementById('worldDonutLegend').innerHTML = wGroups.map(g=>`
+    <div class="legend-row">
+      <div class="legend-dot" style="background:${g.color}"></div>
+      <div><b>${g.label}</b><br><span style="color:#888;font-size:.75rem">${g.val} Mt — ${(g.val/wTotal*100).toFixed(1)}%</span></div>
+    </div>`).join('');
+
+  // ── Contrasts ──
+  const contrasts = [
+    { ico:'📉', col:'#f97316', title:'Kariloomad: Eesti −67%, Maailm +37%',
+      text:'Nõukogude kokkuvarisemine tõi Eestis massilise põllumajanduslanguse. Globaalselt kasvas kariloomade biomass pidevalt.' },
+    { ico:'📈', col:'#6c63ff', title:'Metsloomad: Eesti +50%, Maailm −15%',
+      text:'Eestis taastusid metslooma-populatsioonid (punahirv, hallhüljes). Maailmas jätkub metsik imetajate biomass langus.' },
+    { ico:'📉', col:'#ec4899', title:'Inimesed: Eesti −13%, Maailm +53%',
+      text:'Eesti rahvaarv on kahanenud alates taasiseseisvumisest. Maailma inimbiomass kasvab enneolematus tempos.' },
+    { ico:'📈', col:'#f9ca24', title:'Kodulinnud: Eesti +20%, Maailm +136%',
+      text:'Broilerikasvatus kasvab üleilmselt kiiremini kui ükski muu loomakategooria.' },
+  ];
+  document.getElementById('world-contrasts').innerHTML = contrasts.map(c=>`
+    <div style="display:flex;gap:.6rem;margin-bottom:.9rem;align-items:flex-start;">
+      <div style="font-size:1.2rem;flex-shrink:0;">${c.ico}</div>
+      <div>
+        <div style="font-size:.82rem;font-weight:700;color:${c.col};margin-bottom:.2rem;">${c.title}</div>
+        <div style="font-size:.76rem;color:#888;line-height:1.45;">${c.text}</div>
+      </div>
+    </div>`).join('');
+
+  // ── Index toggle buttons ──
+  const indexSeries = [
+    { id:'metsloomad', label:'🦌 Metsloomad', eeKey:'metsloomad', woKey:'metsloomad_maismaa', col:'#6c63ff' },
+    { id:'koduloomad', label:'🐄 Kariloomad', eeKey:'koduloomad', woKey:'koduloomad',         col:'#f97316' },
+    { id:'inimesed',   label:'🧑 Inimesed',  eeKey:'inimesed',   woKey:'inimesed',            col:'#ec4899' },
+    { id:'kodulinnud', label:'🐓 Kodulinnud', eeKey:'kodulinnud', woKey:'kodulinnud',          col:'#f9ca24' },
+    { id:'haudelinnud',label:'🐦 Haudelinnud',eeKey:'haudelinnud',woKey:'metslinnud',          col:'#43e97b' },
+  ];
+  const togEl = document.getElementById('world-index-toggles');
+  togEl.innerHTML = '';
+  indexSeries.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'metric-toggle';
+    btn.style.cssText = `display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:8px;border:1px solid ${worldIndexOn.has(s.id)?s.col:'#2a2a40'};background:${worldIndexOn.has(s.id)?s.col+'22':'transparent'};color:${worldIndexOn.has(s.id)?s.col:'#888'};cursor:pointer;font-size:.78rem;font-weight:600;`;
+    btn.textContent = s.label;
+    btn.onclick = () => {
+      worldIndexOn.has(s.id) ? worldIndexOn.delete(s.id) : worldIndexOn.add(s.id);
+      renderWorldIndex(indexSeries);
+      // re-style all buttons
+      togEl.querySelectorAll('button').forEach((b,i) => {
+        const ss = indexSeries[i];
+        const on = worldIndexOn.has(ss.id);
+        b.style.borderColor = on ? ss.col : '#2a2a40';
+        b.style.background  = on ? ss.col+'22' : 'transparent';
+        b.style.color       = on ? ss.col : '#888';
+      });
+    };
+    togEl.appendChild(btn);
+  });
+  renderWorldIndex(indexSeries);
+
+  // ── World absolute bar chart ──
+  makeChart('worldAbsChart','bar',{
+    labels: W_YEARS.map(String),
+    datasets: [
+      { label:'Kariloomad',          data:WORLD.koduloomad,          backgroundColor:'#f97316bb', stack:'s' },
+      { label:'Inimesed',            data:WORLD.inimesed,            backgroundColor:'#ec4899bb', stack:'s' },
+      { label:'Metsloomad (meri)',    data:WORLD.metsloomad_mere,     backgroundColor:'#22d3eebb', stack:'s' },
+      { label:'Metsloomad (maismaa)',data:WORLD.metsloomad_maismaa,  backgroundColor:'#6c63ffbb', stack:'s' },
+      { label:'Kodulinnud',          data:WORLD.kodulinnud,          backgroundColor:'#f9ca24bb', stack:'s' },
+      { label:'Metslinnud',          data:WORLD.metslinnud,          backgroundColor:'#43e97bbb', stack:'s' },
+    ]
+  },{ responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:true,position:'bottom',labels:{color:'#aaa',boxWidth:12,font:{size:11}}},
+                tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} Mt`}} },
+      scales:{ x:{stacked:true,ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
+               y:{stacked:true,ticks:{color:'#888',font:{size:10},callback:v=>v+' Mt'},grid:{color:'rgba(255,255,255,.06)'},
+                  title:{display:true,text:'Mt (miljonit tonni elusmassi)',color:'#666',font:{size:11}}} } });
+}
+
+function renderWorldIndex(indexSeries) {
+  const active = indexSeries.filter(s => worldIndexOn.has(s.id));
+  const datasets = [];
+  active.forEach(s => {
+    // Estonia — solid line
+    datasets.push({
+      label:`Eesti — ${s.label}`,
+      data: IDX_EE[s.eeKey],
+      borderColor: s.col, backgroundColor:'transparent',
+      borderWidth:2.5, tension:.35, pointRadius:4,
+      borderDash:[], fill:false,
+    });
+    // World — dashed line
+    const woData = IDX_WO[s.woKey];
+    if(woData) datasets.push({
+      label:`Maailm — ${s.label}`,
+      data: woData,
+      borderColor: s.col, backgroundColor:'transparent',
+      borderWidth:1.5, tension:.35, pointRadius:3,
+      borderDash:[6,4], fill:false,
+    });
+  });
+  makeChart('worldIndexChart','line',{ labels:W_YEARS.map(String), datasets },{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'#aaa',boxWidth:24,font:{size:10},
+        generateLabels: chart => chart.data.datasets.map((ds,i)=>({
+          text: ds.label, fillStyle:'transparent',
+          strokeStyle: ds.borderColor, lineWidth:ds.borderWidth,
+          lineDash: ds.borderDash, datasetIndex:i, hidden:false,
+        }))
+      }},
+      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`}},
+      annotation:{},
+    },
+    scales:{
+      x:{ticks:{color:'#888',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
+      y:{ticks:{color:'#888',font:{size:10},callback:v=>v},
+         grid:{color:'rgba(255,255,255,.06)'},
+         title:{display:true,text:'Indeks (1990 = 100)',color:'#666',font:{size:11}}}
     }
   });
 }
