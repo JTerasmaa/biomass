@@ -37,9 +37,12 @@
   .container { max-width: 1300px; margin: 0 auto; padding: 0 1.5rem 4rem; }
 
   /* SECTION TABS */
-  .section-tabs { display: flex; gap: .4rem; margin: 1.5rem 0 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
-  .section-tabs button { background: none; border: none; color: var(--muted); font-size: 1rem; font-weight: 600; padding: .6rem 1.4rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+  .section-tabs { display: flex; flex-wrap: wrap; gap: .3rem; margin: 1.5rem 0 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .section-tabs button { background: none; border: none; color: var(--muted); font-size: .95rem; font-weight: 600; padding: .55rem 1.1rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; white-space: nowrap; }
   .section-tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
+  @media(max-width: 640px) {
+    .section-tabs button { font-size: .78rem; padding: .45rem .7rem; }
+  }
 
   .section { display: none; }
   .section.active { display: block; }
@@ -97,6 +100,22 @@
   .chart-wrap-tall { position: relative; height: 380px; }
 
   footer { text-align: center; padding: 2rem; color: var(--muted); font-size: .75rem; border-top: 1px solid var(--border); }
+
+  /* ── STORY ── */
+  .story { max-width: 720px; margin: 0 auto; padding-bottom: 2rem; }
+  .story-hero { margin-bottom: 2.5rem; }
+  .story-hero h2 { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 900; line-height: 1.15; letter-spacing: -.02em; margin-bottom: .8rem; }
+  .story-hero h2 em { font-style: normal; background: linear-gradient(135deg,#6c63ff,#43e97b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .story p { font-size: 1rem; line-height: 1.8; color: #ccc; margin-bottom: 1.4rem; }
+  .story p strong { color: #e8e8f0; }
+  .story .pullquote { border-left: 3px solid var(--accent); padding: .8rem 1.2rem; margin: 1.8rem 0; background: rgba(108,99,255,.07); border-radius: 0 10px 10px 0; }
+  .story .pullquote p { font-size: 1.05rem; font-style: italic; color: #ddd; margin: 0; line-height: 1.65; }
+  .story hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+  .story .refs { font-size: .78rem; color: #666; }
+  .story .refs h3 { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+  .story .refs li { margin-bottom: .7rem; line-height: 1.55; list-style: none; padding-left: 1.2rem; text-indent: -1.2rem; }
+  .story .refs a { color: #555; text-decoration: underline; text-underline-offset: 2px; }
+  .story .refs a:hover { color: var(--accent); }
 
   /* ── EXPORT BUTTONS ── */
   .export-bar { display: flex; gap: .8rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
@@ -306,6 +325,7 @@
     <button onclick="showSection('compare24')">📊 2024 võrdlus</button>
     <button onclick="showSection('world')">🌍 Globaalne</button>
     <button onclick="showSection('poster')">🖼 Infograafik</button>
+    <button onclick="showSection('story')">📖 Saatelugu</button>
   </div>
 
   <!-- ============================================================ MAMMALS ============================================================ -->
@@ -578,6 +598,51 @@
 
 </div><!-- /container -->
 
+  <!-- ============================================================ STORY ============================================================ -->
+  <div class="section" id="sec-story">
+  <div class="story">
+
+    <div class="story-hero">
+      <h2>Kui palju kaalub<br><em>Eesti elustik?</em></h2>
+    </div>
+
+    <p>Kui küsida, kes valitseb Eesti loodust, vastab enamik meist tõenäoliselt: inimene. Aga kui panna see küsimus kaalukausile — sõna otseses mõttes — saame vastuse, mis on ühtaegu ootuspärane ja rabav. Eesti maismaaimetajate, lindude ja inimeste kogumassist moodustavad inimene ja tema koduloomad ligi <strong>96 protsenti</strong>. Kõik metsloomad — põdrad, hirved, metssead, karud, hundid, rebased, kobrad, hiired ja nahkhiired kokku — mahuvad ülejäänud nelja protsendi sisse. Üks lehmakari kaalub rohkem kui terve Eesti rahvas.</p>
+
+    <div class="pullquote"><p>„Kõik Eesti metsloomad kokku mahuvad nelja protsendi sisse. Üks lehmakari kaalub rohkem kui terve Eesti rahvas."</p></div>
+
+    <p>2018. aastal ilmus artikkel, mille järgi kogu Maa elusaine — umbes 550 gigatonni süsinikku — koosneb peaaegu täielikult taimedest (80%) ja bakteritest (15%). Kõik loomad kokku on vaid kolmandik protsenti, ja kõik imetajad koos inimesega ainult kolm sajandikku protsenti. Inimese osakaal on tühine: üks sajandik protsenti Maa elusainest. Ometi oleme ümber kujundanud terve planeedi ökosüsteemi.</p>
+
+    <p>2023. aastal avaldatud uuringu järgi kaaluvad maailma koduloomad kokku umbes <strong>630 miljonit tonni</strong> ja inimkond 390 miljonit tonni, samal ajal kui kõik metsikud maismaaimetajad kokku vaid 22 miljonit tonni. Maailma koerad kaaluvad sama palju kui kõik metsikud maismaaimetajad. Sead üksi kaaluvad kaks korda rohkem. Kanade biomass on kolm korda suurem kui kõigi metslindude oma. Kui keegi kujutleb loodust lõputu ja kõikvõimsana, siis arvud seda ei kinnita.</p>
+
+    <div class="pullquote"><p>„Maailma koerad kaaluvad sama palju kui kõik metsikud maismaaimetajad. Sead üksi kaaluvad kaks korda rohkem."</p></div>
+
+    <p>See tasakaal pole alati selline olnud. 2025. aastal ilmunud uuring analüüsis imetajate biomassi muutust alates 1850. aastast. Selles leiti, et tollal olid metsloomad (umbes 200 miljonit tonni) ligikaudu tasakaalus inimese ja tema loomadega. Pärast tööstusrevolutsiooni kasvas inimese ja koduloomade mass kolmekordseks — tänaseks 1100 miljonit tonni — samal ajal kui metsikute imetajate oma kahanes üle kahe korra. Mereimetajad, eelkõige vaalad, kaotasid tööstusliku vaalapüügi tõttu umbes <strong>70 protsenti</strong> oma massist.</p>
+
+    <p>Kuidas on olukord Eestis? Kui vaatame viimasel 35 aastal toimunut, siis saame väita, et oleme erand — kuigi pigem asjaolude kokkulangemise tõttu. Kui maailmas liigub kõik ühes suunas (inimene ja koduloomad üles, metsloomad alla), siis Eesti läks 1990. aastatel hoopis vastassuunas. Nõukogude Liidu lagunemisega kukkus meie kariloomade arv järsult — veiseid oli 1990. aastal ligi 700 000, tänaseks 232 000. Samal ajal on Eesti metsloomade biomass viimase kolmekümne aastaga kasvanud ligi poole võrra. Karu, hundi ja ilvese arvukus on viimaste aastakümnete tipus, punahirvi on rohkem kui kunagi varem — nad on isegi ületanud põdra arvukuse.</p>
+
+    <p>Analoogilist trendi on tuvastanud ka teised. Üks 2025. aasta uuring näitab täpselt sama mustrit kogu Euroopas — maapiirkondade hülgamine ja muutuv majandus on kahandanud kariloomi ja lasknud metsikutel sõralistel ja kiskjatel taastuda. Norras moodustasid kariloomad 1939. aastal 97 protsenti suurte rohusööjate massist, 2009. aastaks vaid 53 protsenti.</p>
+
+    <div class="pullquote"><p>„Suund on vastupidine, kuid tasakaalukese on nihkunud samasse kohta — inimene ja koduloomad hõlmavad nii Eestis kui ka kogu maailmas ~96% imetajate massist."</p></div>
+
+    <p>Mis on huvitav, on see, et lõpptulemus on Eestis täpsemalt sama, mis mujal maailmas — inimene ja koduloomad hõlmavad ~96 protsenti imetajate massist. Suund on vastupidine, tasakaalukese on nihkunud samasse kohta.</p>
+
+    <hr>
+
+    <div class="refs">
+      <h3>Viited</h3>
+      <ul>
+        <li>Bar-On, Y. M., Phillips, R., &amp; Milo, R. (2018). The biomass distribution on Earth. <em>Proceedings of the National Academy of Sciences, 115</em>(25), 6506–6511. <a href="https://doi.org/10.1073/pnas.1711842115" target="_blank">doi:10.1073/pnas.1711842115</a></li>
+        <li>Greenspoon, L., et al. (2023). The global biomass of wild mammals. <em>Proceedings of the National Academy of Sciences, 120</em>(10), e2204892120. <a href="https://doi.org/10.1073/pnas.2204892120" target="_blank">doi:10.1073/pnas.2204892120</a></li>
+        <li>Greenspoon, L., et al. (2025). The global biomass of mammals since 1850. <em>Nature Communications, 16</em>, 8338. <a href="https://doi.org/10.1038/s41467-025-63888-z" target="_blank">doi:10.1038/s41467-025-63888-z</a></li>
+        <li>Keskkonnaagentuur. (2025). <em>Ulukiasurkondade seisund ja küttimissoovitus 2025</em>. <a href="https://keskkonnaportaal.ee/et/soraliste-arvukus-ja-kuttimine" target="_blank">keskkonnaportaal.ee</a></li>
+        <li>Speed, J. D. M., et al. (2025). The trophic distribution of biomass in ecosystems with co-occurring wildlife and livestock. <em>Scientific Reports, 15</em>, 1474. <a href="https://doi.org/10.1038/s41598-025-85469-2" target="_blank">doi:10.1038/s41598-025-85469-2</a></li>
+        <li>Statistikaamet. (2025). <em>Põllumajandusloomad ja -linnud</em> [Andmetabel PL031]. <a href="https://andmed.stat.ee" target="_blank">andmed.stat.ee</a></li>
+      </ul>
+    </div>
+
+  </div>
+  </div><!-- /story -->
+
 <!-- A4 POSTER (off-screen, built dynamically for export) -->
 <div id="a4-poster"></div>
 
@@ -774,7 +839,7 @@ function showSection(name) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-'+name).classList.add('active');
   document.querySelectorAll('.section-tabs button').forEach((b,i) => {
-    const map = ['mammals','birds','compare24','world','poster'];
+    const map = ['mammals','birds','compare24','world','poster','story'];
     b.classList.toggle('active', map[i]===name);
   });
   if(name==='birds') renderBirds();
